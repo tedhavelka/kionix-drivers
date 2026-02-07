@@ -1,0 +1,7 @@
+#
+# Copyright (c) 2021 Neela Nurseries
+#
+
+menu "Kionix drivers"
+rsource "kionix/Kconfig"
+endmenu

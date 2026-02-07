@@ -1,0 +1,14 @@
+#
+
+description: |
+    Kionix KX132 accelerometer accessed through SPI bus 
+
+compatible: "kionix,kx132"
+
+include: spi-device.yaml
+
+properties:
+    drdy-gpios:
+      type: phandle-array
+      required: false
+      description: DRDY pin

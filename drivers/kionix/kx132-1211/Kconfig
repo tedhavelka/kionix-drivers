@@ -1,0 +1,74 @@
+#
+# Copyright (c) 2021 - 2026 Neela Nurseries
+#
+
+menuconfig KX132_1211
+    bool "Enable driver for Kionix KX132 accelerometer"
+    default y
+    depends on DT_HAS_KIONIX_KX132_ENABLED
+    depends on I2C
+    help
+        Enable driver for Kionix KX132 accelerometer.
+
+if KX132_1211
+
+config KX132_POWER_MODE
+    int "KX132 sensor power modes"
+    range 0 1 
+    default 0
+    help
+      Specify the sensor power mode
+      0: stand by mode
+      1: high performance or low power mode (set by readings resolution selection)
+
+choice KX132_TRIGGER_MODE
+    prompt "Trigger mode"
+    help
+      Specify the thread to manage sensor triggering (interrupts), and
+      among choices specify `none` for situation where no sensor interrupt
+      is needed.
+
+config KX132_TRIGGER_GLOBAL_THREAD
+    bool "Use global thread"
+    depends on GPIO
+    depends on KX132_TRIGGER
+
+config KX132_TRIGGER_OWN_THREAD
+    bool "Use own thread"
+    depends on GPIO
+    depends on KX132_TRIGGER
+
+config KX132_TRIGGER_NONE
+    bool "No trigger"
+
+endchoice # KX132_TRIGGER_MODE
+
+if KX132_TRIGGER_OWN_THREAD
+
+config KX132_THREAD_STACK_SIZE
+    int "Sensor interrupt handling thread stack size"
+    depends on KX132_TRIGGER_OWN_THREAD
+    default 1024
+    help
+      Select a static RAM allocation for application thread dedicated to
+      handle KX132 hardware interrupts.
+
+endif # KX132_TRIGGER_OWN_THREAD
+
+config KX132_THREAD_PRIORITY
+    int "KX132 thread priority"
+    depends on KX132_TRIGGER_OWN_THREAD
+    default 10
+    help
+      Priority of thread used by KX132-1211 driver to handle interrupts.
+
+config KX132_I2C_WRITE_BUFFER_SIZE
+    int "size of I2C write buffer in bytes"
+    depends on I2C
+    default 5
+    help
+      User configurable driver buffer size, unlikely to require changes but
+      exposed here in Kconfig in case user encounters use case of KX132 sensor
+      which requires writing multiple bytes, more than default count set here.
+
+endif # KX132_1211

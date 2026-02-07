@@ -1,0 +1,7 @@
+#
+# Copyright (c) 2021 Neela Nurseries
+#
+
+menu "Kionix and other sensor drivers V2"
+rsource "drivers/Kconfig"
+endmenu

@@ -1,0 +1,15 @@
+user@71c8a7b123e6:/workdir/kionix-drivers/drivers/kionix/kx132-1211$ ./gcc-dash-E-2.sh kx132-1211.c >> 03-kx132-1211-c-macro-expansion.c
+In file included from ../../../../zephyr/include/zephyr/toolchain.h:52,
+                 from ../../../../zephyr/include/zephyr/sys/__assert.h:11,
+                 from ../../../../zephyr/include/zephyr/irq_multilevel.h:15,
+                 from ../../../../zephyr/include/zephyr/devicetree.h:20,
+                 from ../../../../zephyr/include/zephyr/device.h:12,
+                 from kx132-1211.c:13:
+../../../../zephyr/include/zephyr/toolchain/gcc.h:627:2: error: #error processor architecture not supported
+  627 | #error processor architecture not supported
+      |  ^~~~~
+In file included from ../../../../zephyr/include/zephyr/drivers/i2c.h:29,
+                 from kx132-1211.c:14:
+../../../../zephyr/include/zephyr/kernel.h:51:2: error: #error Zero available thread priorities defined!
+   51 | #error Zero available thread priorities defined!
+      |  ^~~~~

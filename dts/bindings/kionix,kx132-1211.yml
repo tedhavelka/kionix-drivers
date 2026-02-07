@@ -1,0 +1,24 @@
+#
+# Copyright (c) 2021 Neela Nurseries
+#
+
+description:  Kionix 3-axis accelerometer
+
+compatible: "kionix,kx132"
+
+include: i2c-device.yaml
+
+properties:
+    drdy-gpios:
+      type: phandle-array
+      required: false
+      description: DRDY pin, `Data Ready' interrupt pin.
+
+        See Kionix' documents
+        KX132-1211-Technical-Reference-Manual-Rev-5.0.pdf and AN092-Getting-Started.pdf
+        for more information.
+
+    irq-gpios:
+      type: phandle-array
+      required: false
+      description: Interrupt GPIO pin
