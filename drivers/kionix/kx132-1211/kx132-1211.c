@@ -37,6 +37,17 @@ static int kx132_1211_attr_get(const struct device *dev,
 {
     int rstatus = 0;
 
+    // TODO [ ] There is a sensor attribute enum value `SENSOR_ATTR_PRIV_START`
+    //           defined at
+    //           https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/drivers/sensor.h#L407
+    //           Test for this value and when found.
+    //
+    // TODO [ ] amend the use of 'value' parameter to convey KX132-specific
+    //           attribute to change in .val2 followed by flags or given value 
+    //           to set passed in .val1.  This will overcome the 'not in enum'
+    //           build time warnings from our non-Zephyr sensor attribute
+    //           enum extending values.
+
     switch (attr)
     {
         case SENSOR_ATTR_KIONIX__STATUS_REG_INS2:

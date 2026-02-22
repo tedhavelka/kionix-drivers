@@ -16,7 +16,7 @@
 #define PERIOD_TO_POWER_UP_IN_MS         (50)
 #define PERIOD_TO_PERFORM_SW_RESET_IN_MS (50) // (20)
 
-// NEED 2023-01-12 to review how byte count here works for higher
+// TOOO [ ] 2023-01-12 to review how byte count here works for higher
 //  resolution KX132 readings, 16-bit wide readings, but is
 //  incorrect for low resolution readings which are 8 bits wide:
 
@@ -77,6 +77,10 @@ union kx132_acc_reading
 // - SECTION - Zephyr sensor API constructs
 //----------------------------------------------------------------------
 
+// TODO [ ] Test what happens when device tree defines a KX132 sensor on the
+//           I2C bus and the SPI bus.  Will Zephyr DTS macros `DT_ANY_INST_`
+//           know which type of bus to put in a given sensor's structures
+//           at build time?
 union kx132_bus_cfg {
 #if DT_ANY_INST_ON_BUS_STATUS_OKAY(i2c)
         struct i2c_dt_spec i2c;
@@ -87,23 +91,14 @@ union kx132_bus_cfg {
 #endif /* DT_ANY_INST_ON_BUS_STATUS_OKAY(spi) */
 };
 
-#if 0
-struct kx132_device_config {
-#if DT_ANY_INST_ON_BUS_STATUS_OKAY(spi)
-	struct spi_dt_spec spi;
-#endif
-#if DT_ANY_INST_ON_BUS_STATUS_OKAY(i2c)
-	struct i2c_dt_spec i2c;
-#endif
-	uint8_t pm;
-#ifdef CONFIG_KX132_TRIGGER
-	struct gpio_dt_spec int_gpio;
-#endif /* CONFIG_KX132_TRIGGER */
-};
-#endif // 0
-
 struct kx132_device_config {
         int (*bus_init)(const struct device *dev);
+	// TODO [ ] Check whether `bus_cfg` needs to be defined as a union type
+	//           just above a few lines, given that a given sensor appears
+	//           exclusively on SPI bus or I2C bus:
+	//           (Unlikely a KX132 would appears twice in a circuit on two
+	//            different types of physical bus, but we want the code
+	//            unable to make mistakes we can see in advance.)
         const union kx132_bus_cfg bus_cfg;
 #ifdef CONFIG_LIS2DH_TRIGGER
         const struct gpio_dt_spec gpio_drdy;
@@ -119,6 +114,8 @@ struct kx132_device_data {
     const struct device *dev;
     struct gpio_callback gpio_cb;
     sensor_trigger_handler_t drdy_handler;
+    // TODO [ ] Check whether interrupt GPIO should be in the sensor's data
+    //           struct or the sensor's config struct:
     struct gpio_dt_spec int_gpio;
 #if defined(CONFIG_KX132_TRIGGER_OWN_THREAD)
     K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_KX132_THREAD_STACK_SIZE);
