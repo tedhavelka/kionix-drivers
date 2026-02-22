@@ -261,7 +261,6 @@ int kx132_fetch_interrupt_latch_release(const struct device *dev);
 
 int kx132_fetch_interrupt_source_2(const struct device *dev);
 
-
 // - GROUP - "get attribute" type routines which immediately return sensor register values:
 
 int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *val);
@@ -271,17 +270,6 @@ int kx132_get_attr__output_data_rate(const struct device *dev, struct sensor_val
 int kx132_get_attr__buf_cntl1__sample_threshold_setting(const struct device *dev, struct sensor_value *val);
 
 int kx132_get_attr__buf_read__sample_as_attribute(const struct device *dev, struct sensor_value *val);
-
-// Not technically a attribute getters, but returns which return a value immediately:
-
-/**
- * @brief Routine which takes a raw accelerometer reading, and full
- *        range value, e.g. +2.0g, +4.0g, etc, and returns an
- *        acceleration value in units of g.
- */
-int kx132_get_attr__acc_reading_in_standard_units(const struct device *dev, struct sensor_value *val);
-
-
 
 // - GROUP - routines which write values to sensor registers:
 

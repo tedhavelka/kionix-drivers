@@ -476,8 +476,6 @@ int kx132_fetch_device_id(const struct device *dev)
     return rc;
 }
 
-
-
 int kx132_fetch_part_id(const struct device *dev)
 {
     struct kx132_device_data *data = dev->data;
@@ -502,8 +500,6 @@ int kx132_fetch_part_id(const struct device *dev)
     return rc;
 }
  
-
-
 int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *val)
 {
     struct kx132_device_data *data = dev->data;
@@ -517,8 +513,6 @@ int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct s
 
     return rc;
 }
-
-
 
 int kx132_get_attr__output_data_rate(const struct device *dev, struct sensor_value *val)
 {
@@ -535,8 +529,6 @@ int kx132_get_attr__output_data_rate(const struct device *dev, struct sensor_val
     return rc;
 }
 
-
-
 // IN PROGRESS - routine to return BUF_CNTL1 sample threshold value:
 
 int kx132_get_attr__buf_cntl1__sample_threshold_setting(const struct device *dev, struct sensor_value *value)
@@ -552,8 +544,6 @@ int kx132_get_attr__buf_cntl1__sample_threshold_setting(const struct device *dev
 
     return rc;
 }
-
-
 
 //
 // 2023-01-23 - IN PROGRESS routine to return BUF_READ six bytes for
@@ -598,48 +588,6 @@ int kx132_get_attr__buf_read__sample_as_attribute(const struct device *dev, stru
                    ( read_buffer[5] <<  8 )    // ZOUT_H
                   );
     return rc;
-}
-
-/**
- *----------------------------------------------------------------------
- * @brief Routine to convert KX132 raw acceleration readings to readings
- *        in standard units of measure.
- *
- * @param raw reading - in sensor_t value.val1, bits 0..15
- * @param KX132 reading resolution - in sensor_t value.val1, bit 16
- * @param KX132 sampling range - in sensor_t value.val2, bits 0..2
- * @param desired standard units - in sensor_t value.val2, bits 16..31
- *
- * @return converted acceleration value in value.val1, in IEEE-754 floating point format
- *
- * @note units of g or m/s^2 only standard units supported 2023-02-20
- *
- * ( returned acceleration value may be 16-bit floating point depending
- *   on CMSIS or other advanced math library choice. )
- *----------------------------------------------------------------------
- */
-
-int kx132_get_attr__acc_reading_in_standard_units(const struct device *dev, struct sensor_value *value)
-{
-#if 0 // TODO [ ] Review existing Zephyr accelerometer drivers to learn whether
-      //   they provide measurement conversations.
-    union converted_reading_union_t
-    {
-        float as_float;
-        unsigned int as_int;
-    };
-
-    unsigned int raw_acc_reading                     = (value->val1 & 0x0000FFFF);
-    enum kx132_acceleration_resolutions resolution   = ((value->val1 & 0x00030000) >> 16);  // two resolutions
-    enum kx132_acceleration_ranges range             = (value->val2 & 0x00000007);          // four ranges in KX132
-    enum acceleration_units_of_measure desired_units = ((value->val2 & 0x00FF0000) >> 16);  // TBD count of conversion types
-
-    union converted_reading_union_t reading;
-    reading.as_float = reading_in_g(raw_acc_reading, resolution, range, desired_units);
-    value->val1 = reading.as_int;
-#endif // 0
-
-    return 0;
 }
 
 //----------------------------------------------------------------------

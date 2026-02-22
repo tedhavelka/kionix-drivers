@@ -22,7 +22,6 @@ LOG_MODULE_REGISTER(KX132, CONFIG_SENSOR_LOG_LEVEL);
 
 #include "kx132-1211.h"
 #include "kx132-registers.h"
-#include "kx132-triggers.h"
 
 #define DEFAULT_OPTION_ZERO (0U)
 
@@ -37,41 +36,50 @@ static int kx132_1211_attr_get(const struct device *dev,
 {
     int rstatus = 0;
 
-    // TODO [ ] There is a sensor attribute enum value `SENSOR_ATTR_PRIV_START`
+    // TODO [ ] There is a sensor attribute enum value `SENSOR_ATTR_CONFIGURATION`
     //           defined at
-    //           https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/drivers/sensor.h#L407
+    //           https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/drivers/sensor.h#L376
     //           Test for this value and when found.
     //
     // TODO [ ] amend the use of 'value' parameter to convey KX132-specific
-    //           attribute to change in .val2 followed by flags or given value 
-    //           to set passed in .val1.  This will overcome the 'not in enum'
+    //           attribute to change in .val1 followed by flags or given value 
+    //           to set passed in .val2.  This will overcome the 'not in enum'
     //           build time warnings from our non-Zephyr sensor attribute
     //           enum extending values.
 
+    // Note 2026-20-23 dom - out-of-tree-driver-demo does not call `sensor_attr_get`
+    //  thus changes here will not be visible until that supporting demo
+    //  app is updated.
+
     switch (attr)
     {
-        case SENSOR_ATTR_KIONIX__STATUS_REG_INS2:
-            rstatus = kx132_get_attr__return_interrupt_statae_2(dev, value);
-            break;
+        case SENSOR_ATTR_CONFIGURATION:
+        switch (value->val1)
+	{
+            case SENSOR_ATTR_KIONIX__STATUS_REG_INS2:
+                rstatus = kx132_get_attr__return_interrupt_statae_2(dev, value);
+                break;
 
-        case SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL:
-            rstatus = kx132_get_attr__output_data_rate(dev, value);
-            break;
+            case SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL:
+                rstatus = kx132_get_attr__output_data_rate(dev, value);
+                break;
 
-        case SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1:
-            rstatus = kx132_get_attr__buf_cntl1__sample_threshold_setting(dev, value);
-            break;
+            case SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1:
+                rstatus = kx132_get_attr__buf_cntl1__sample_threshold_setting(dev, value);
+                break;
 
-        case SENSOR_ATTR_KIONIX__FIFO_REG_BUF_READ:
-            rstatus = kx132_get_attr__buf_read__sample_as_attribute(dev, value);
-            break;
+            case SENSOR_ATTR_KIONIX__FIFO_REG_BUF_READ:
+                rstatus = kx132_get_attr__buf_read__sample_as_attribute(dev, value);
+                break;
 
-
-        case SENSOR_ATTR_KIONIX__ACC_READING_IN_STANDARD_UNITS:
-            rstatus = kx132_get_attr__acc_reading_in_standard_units(dev, value);
-            break;
-
+            default:
+		LOG_ERR("Failed to get KX132 configuration encoded as %d, unsupported config",
+			value->val1);
+                rstatus = -ENOTSUP;
+                break;
+	}
         default:
+            LOG_ERR("Failed to get KX132 attribute %d, unsupported attribute", attr);
             rstatus = -EINVAL;
             break;
     }
