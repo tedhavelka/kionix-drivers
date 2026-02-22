@@ -450,6 +450,7 @@ int kx132_update_shadow_reg__sample_threshold(const struct device *dev, const ui
  * @brief This routine fetches Kionix KX132-1211 Manufacturer ID string.
  */
 
+#if 0
 int kx132_fetch_device_id(const struct device *dev)
 {
     struct kx132_device_data *data = dev->data;
@@ -468,13 +469,16 @@ int kx132_fetch_device_id(const struct device *dev)
 
     for ( i = 0; i < SIZE_MANUFACT_ID_STRING; i++ )
     {
+        // TODO [ ] Review KX132 struct for sensor data, and its apparent member
+	//          `manufacturer_id`.  We should remove this in favor of returning
+	//          this value using `sensor_attr_get()` function plus specific
+	//          helper function to it.
         data->manufacturer_id.as_bytes[i] = read_buffer[i];
     }
 
-// Diag 1 here - 2022-12-05
-
     return rc;
 }
+#endif // 0
 
 int kx132_fetch_part_id(const struct device *dev)
 {
@@ -500,6 +504,37 @@ int kx132_fetch_part_id(const struct device *dev)
     return rc;
 }
  
+int kx132_attr_man_id_string_get(const struct device *dev, struct sensor_value *value)
+{
+    struct kx132_device_data *data = dev->data;
+    uint8_t reg_val_to_read[KX132_MAN_ID_SIZE] = {0};
+    uint8_t *read_buffer = reg_val_to_read;
+    uint32_t rc = 0;
+
+    if (value->val1 != KX132_ATTR_MANUFACTURER_ID_STRING)
+    {
+        LOG_ERR("Called to return manufacturer id string but got wrong register id %d",
+                value->val1);
+        return -EINVAL;
+    }
+
+ // rc = kx132_read_reg(data->ctx, KX132_MAN_ID, read_buffer, KX132_MAN_ID_SIZE);
+    rc = kx132_read_reg(data->ctx, KX132_MAN_ID, read_buffer, KX132_MAN_ID_SIZE);
+    int32_t man_id_as_int =
+	    read_buffer[3] |
+	    read_buffer[2] << 8 |
+	    read_buffer[1] << 16 |
+	    read_buffer[0] << 24;
+    value->val2 = man_id_as_int;
+
+    // for (int i = 0; i < SIZE_MANUFACT_ID_STRING; i++)
+    // {
+    //     data->manufacturer_id.as_bytes[i] = read_buffer[i];
+    // }
+
+    return rc;
+}
+
 int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *val)
 {
     struct kx132_device_data *data = dev->data;

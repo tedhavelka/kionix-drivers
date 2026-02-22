@@ -60,6 +60,10 @@ static int kx132_1211_attr_get(const struct device *dev,
         case SENSOR_ATTR_CONFIGURATION:
         switch (value->val1)
 	{
+            case KX132_ATTR_MANUFACTURER_ID_STRING:
+		rstatus = kx132_attr_man_id_string_get(dev, value);
+		break;
+
             case SENSOR_ATTR_KIONIX__STATUS_REG_INS2: // TODO rename ==> KX132_ATTRIBUTE_REG_INS2
                 rstatus = kx132_get_attr__return_interrupt_statae_2(dev, value);
                 break;
@@ -234,9 +238,9 @@ static int kx132_1211_sample_fetch(const struct device *dev, enum sensor_channel
 
     switch (channel)
     {
-        case SENSOR_CHAN_KIONIX_MANUFACTURER_ID:  // a four byte value
-            kx132_fetch_device_id(dev);
-            break;
+        // case SENSOR_CHAN_KIONIX_MANUFACTURER_ID:  // a four byte value
+        //     kx132_fetch_device_id(dev);
+        //     break;
 
         case SENSOR_CHAN_KIONIX_PART_ID:          // a two byte value
             kx132_fetch_part_id(dev);

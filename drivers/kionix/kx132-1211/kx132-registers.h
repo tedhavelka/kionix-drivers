@@ -253,7 +253,7 @@ int kx132_fetch_readings_from_buf_read(const struct device *dev);
  *----------------------------------------------------------------------
  */
 
-int kx132_fetch_device_id(const struct device *dev);
+// int kx132_fetch_device_id(const struct device *dev);
 
 int kx132_fetch_part_id(const struct device *dev);
 
@@ -262,6 +262,18 @@ int kx132_fetch_interrupt_latch_release(const struct device *dev);
 int kx132_fetch_interrupt_source_2(const struct device *dev);
 
 // - GROUP - "get attribute" type routines which immediately return sensor register values:
+
+// TODO [ ] Consider changing 'int' return type to explicit 'int32_t' for all
+//          fucntion prototypes in this header file.
+// TOOD [ ] While cosmetic only consider rename of parameter 'val' to 'value' to
+//          match the function definitions.
+
+/**
+ * @brief Read KX132 device for manufacturer's identifying string, a four-byte
+ *  value.  Return string in the second member of parameter 'value'.
+ */
+
+int kx132_attr_man_id_string_get(const struct device *dev, struct sensor_value *value);
 
 int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *val);
 
