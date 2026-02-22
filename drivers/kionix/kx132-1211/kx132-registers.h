@@ -265,7 +265,7 @@ int kx132_fetch_interrupt_source_2(const struct device *dev);
 
 int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *val);
 
-int kx132_get_attr__output_data_rate(const struct device *dev, struct sensor_value *val);
+int kx132_attr_reg_odcntl_get(const struct device *dev, struct sensor_value *val);
 
 int kx132_attr_sample_threshold_setting_get(const struct device *dev, struct sensor_value *val);
 

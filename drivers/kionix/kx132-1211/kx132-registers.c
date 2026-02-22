@@ -514,17 +514,25 @@ int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct s
     return rc;
 }
 
-int kx132_get_attr__output_data_rate(const struct device *dev, struct sensor_value *val)
+int kx132_attr_reg_odcntl_get(const struct device *dev, struct sensor_value *value)
 {
     struct kx132_device_data *data = dev->data;
-    uint8_t reg_val_to_read[] = {0, 0};  uint8_t *read_buffer = reg_val_to_read;
+    uint8_t reg_val_to_read[] = {0, 0};
+    uint8_t *read_buffer = reg_val_to_read;
     uint32_t rc = 0;
 
-//    rc = kx132_read_reg(data->ctx, KX132_ODCNTL, read_buffer, 2);  // NEED we read two bytes, e.g. SIZE_KX132_REGISTER_VALUE?
-    rc = kx132_read_reg(data->ctx, KX132_ODCNTL, read_buffer, SIZE_KX132_REGISTER_VALUE);  // NEED we read two bytes, e.g. SIZE_KX132_REGISTER_VALUE?
+    if (value->val1 != SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL)
+    {
+        LOG_ERR("Called to return reg ODCNTL value but with wrong register id %d", value->val1);
+        return -EINVAL;
+    }
+
+    rc = kx132_read_reg(data->ctx, KX132_ODCNTL, read_buffer, SIZE_KX132_REGISTER_VALUE);
     data->shadow_reg_odcntl = read_buffer[0];
-    val->val1 = (data->shadow_reg_odcntl & KX132_OSA_BITS_MASK);
-    val->val2 = 0;
+    // - DEV 0223 - return register value unmasked.  TODO [ ] Implement a distinct
+    //  routine to return only the OSA bits or a value representing output data rate.
+    // val->val1 = (data->shadow_reg_odcntl & KX132_OSA_BITS_MASK);
+    value->val2 = (data->shadow_reg_odcntl);
 
     return rc;
 }

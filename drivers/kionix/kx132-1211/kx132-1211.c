@@ -65,7 +65,7 @@ static int kx132_1211_attr_get(const struct device *dev,
                 break;
 
             case SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL: // TODO rename ==> KX132_ATTRIBUTE_REG_ODCNTL
-                rstatus = kx132_get_attr__output_data_rate(dev, value);
+                rstatus = kx132_attr_reg_odcntl_get(dev, value);
                 break;
 
             case SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1: // TODO rename ==> KX132_ATTRIBUTE_REG_CNTL1
