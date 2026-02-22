@@ -530,63 +530,25 @@ int kx132_get_attr__output_data_rate(const struct device *dev, struct sensor_val
 }
 
 // IN PROGRESS - routine to return BUF_CNTL1 sample threshold value:
+// - DEV 0223 - amend to use value.val1 for named attribute/config and value.val2 for config value:
 
-int kx132_get_attr__buf_cntl1__sample_threshold_setting(const struct device *dev, struct sensor_value *value)
+int kx132_attr_sample_threshold_setting_get(const struct device *dev, struct sensor_value *value)
 {
     struct kx132_device_data *data = dev->data;
-    uint8_t reg_val_to_read[] = {0, 0};  uint8_t *read_buffer = reg_val_to_read;
+    uint8_t reg_val_to_read[] = {0, 0};
+    uint8_t *read_buffer = reg_val_to_read;
     uint32_t rc = 0;
+
+    if (value->val1 != SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1)
+    {
+        LOG_ERR("Called to return reg CNTL1 value but with wrong register id %d", value->val1);
+        return -EINVAL;
+    }
 
     rc = kx132_read_reg(data->ctx, KX132_BUF_CNTL1, read_buffer, SIZE_KX132_REGISTER_VALUE);
     data->shadow_reg_buf_cntl1 = read_buffer[0];
-    value->val1 = data->shadow_reg_buf_cntl1;
-    value->val2 = 0;
+    value->val2 = data->shadow_reg_buf_cntl1;
 
-    return rc;
-}
-
-//
-// 2023-01-23 - IN PROGRESS routine to return BUF_READ six bytes for
-//  latest sample, directly to calling code:
-//----------------------------------------------------------------------
-
-/**
- * @brief Routine to read high resolution (16-bit) x,y,z acc sample
- *        triplet and return this sample directly to calling code.
- *
- * @note  This direct value returning is in contrast to Zephyr's sensor
- *        API practice, where Zephyr drivers conventionally "fetch"
- *        a reading from a sensor and store the reading in driver side
- *        memory, and a second routine call to the driver is then
- *        required to "get" the fetched data and return it to
- *        application code.
- */
-
-int kx132_get_attr__buf_read__sample_as_attribute(const struct device *dev, struct sensor_value *value)
-{
-    struct kx132_device_data *data = dev->data;
-    uint8_t reg_val_to_read[] = {0, 0, 0, 0, 0, 0};
-    uint8_t *read_buffer = reg_val_to_read;
-    int rc = 0;
-
-    rc = kx132_read_reg(data->ctx, KX132_BUF_READ, read_buffer, KX132_READINGS_TRIPLET_HI_RES_BYTE_COUNT);
-
-    if ( rc != 0 )
-    {
-        LOG_WRN("Unable to read acceleration sample buffer BUF_READ.  Error: %i", rc);
-        return rc;
-    }
-
-    value->val1 = (
-                   ( read_buffer[0] <<  0 ) +  // XOUT_L
-                   ( read_buffer[1] <<  8 ) +  // XOUT_H
-                   ( read_buffer[2] << 16 ) +  // YOUT_L
-                   ( read_buffer[3] << 24 )    // YOUT_H
-                  );
-    value->val2 = (
-                   ( read_buffer[4] <<  0 ) +  // ZOUT_L
-                   ( read_buffer[5] <<  8 )    // ZOUT_H
-                  );
     return rc;
 }
 

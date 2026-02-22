@@ -56,20 +56,16 @@ static int kx132_1211_attr_get(const struct device *dev,
         case SENSOR_ATTR_CONFIGURATION:
         switch (value->val1)
 	{
-            case SENSOR_ATTR_KIONIX__STATUS_REG_INS2:
+            case SENSOR_ATTR_KIONIX__STATUS_REG_INS2: // TODO rename ==> KX132_ATTRIBUTE_REG_INS2
                 rstatus = kx132_get_attr__return_interrupt_statae_2(dev, value);
                 break;
 
-            case SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL:
+            case SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL: // TODO rename ==> KX132_ATTRIBUTE_REG_ODCNTL
                 rstatus = kx132_get_attr__output_data_rate(dev, value);
                 break;
 
-            case SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1:
-                rstatus = kx132_get_attr__buf_cntl1__sample_threshold_setting(dev, value);
-                break;
-
-            case SENSOR_ATTR_KIONIX__FIFO_REG_BUF_READ:
-                rstatus = kx132_get_attr__buf_read__sample_as_attribute(dev, value);
+            case SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1: // TODO rename ==> KX132_ATTRIBUTE_REG_CNTL1
+                rstatus = kx132_attr_sample_threshold_setting_get(dev, value);
                 break;
 
             default:
