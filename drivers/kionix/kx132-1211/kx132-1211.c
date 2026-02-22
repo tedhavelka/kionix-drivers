@@ -34,18 +34,22 @@ static int kx132_1211_attr_get(const struct device *dev,
                                enum sensor_attribute attr,
                                struct sensor_value *value)
 {
+    // TODO [ ] Watch for ways in which other drivers, and this driver, may
+    //          use the sensor channel parameter 'chan' when reading and
+    //          returning sensor device attributes.
+    ARG_UNUSED(chan);
     int rstatus = 0;
 
     // TODO [ ] There is a sensor attribute enum value `SENSOR_ATTR_CONFIGURATION`
-    //           defined at
-    //           https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/drivers/sensor.h#L376
-    //           Test for this value and when found.
+    //          defined at
+    //          https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/drivers/sensor.h#L376
+    //          Test for this value and when found.
     //
     // TODO [ ] amend the use of 'value' parameter to convey KX132-specific
-    //           attribute to change in .val1 followed by flags or given value 
-    //           to set passed in .val2.  This will overcome the 'not in enum'
-    //           build time warnings from our non-Zephyr sensor attribute
-    //           enum extending values.
+    //          attribute to change in .val1 followed by flags or given value 
+    //          to set passed in .val2.  This will overcome the 'not in enum'
+    //          build time warnings from our non-Zephyr sensor attribute
+    //          enum extending values.
 
     // Note 2026-20-23 dom - out-of-tree-driver-demo does not call `sensor_attr_get`
     //  thus changes here will not be visible until that supporting demo
@@ -74,6 +78,8 @@ static int kx132_1211_attr_get(const struct device *dev,
                 rstatus = -ENOTSUP;
                 break;
 	}
+	    break;
+
         default:
             LOG_ERR("Failed to get KX132 attribute %d, unsupported attribute", attr);
             rstatus = -EINVAL;
@@ -406,7 +412,9 @@ LOG_ERR("M1");
 #ifdef CONFIG_KX132_TRIGGER
     const struct kx132_device_config *cfg = dev->config;
 #endif
-    struct kx132_device_data *data = dev->data;
+    // TODO [ ] Review other Zephyr drivers and see whether their init functions touch their
+    //          respective sensor data structs:
+    // struct kx132_device_data *data = dev->data;
     uint32_t rc = 0;
     kx132_init_interface(dev);
 
