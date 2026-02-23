@@ -25,7 +25,6 @@
 #define BYTE_COUNT_OF_KX132_ACCELERATION_READING_THREE_AXES \
 	((KX132_ACC_READING_SINGLE_AXIS_BYTE_COUNT) * 3) 
 
-//
 //**********************************************************************
 // Following enum likely to remain part of first production release
 // of this driver, but as of 2022 Q4 - 2023 Q1 there is debugging work
@@ -64,14 +63,6 @@ union kx132_acc_reading
     uint16_t in_hi_res_16_bit_mode;
     uint8_t in_lo_res_8_bit_mode[2];
 };
-
-// # https://gcc.gnu.org/onlinedocs/gcc-3.4.6/cpp/Stringification.html . . . stringification via C macros
-#define xstr(s) str(s)
-#define str(s) #s
-
-// Ejemplo:
-// #define ST_IIS2DH DT_INST(0, st_iis2dh)
-// printk("- DEV 1028 - symbol ST_IIS2DH got assigned '%s'\n", xstr(ST_IIS2DH));
 
 //----------------------------------------------------------------------
 // - SECTION - Zephyr sensor API constructs
@@ -115,7 +106,7 @@ struct kx132_device_data {
     struct gpio_callback gpio_cb;
     sensor_trigger_handler_t drdy_handler;
     // TODO [ ] Check whether interrupt GPIO should be in the sensor's data
-    //           struct or the sensor's config struct:
+    //          struct or the sensor's config struct:
     struct gpio_dt_spec int_gpio;
 #if defined(CONFIG_KX132_TRIGGER_OWN_THREAD)
     K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_KX132_THREAD_STACK_SIZE);
@@ -223,73 +214,13 @@ int kx132_trigger_set(const struct device *dev,
 #define KX132_I2C_ADDRESS_FLIPPED__ADDR_PIN_AT_GND    (0x1C)
 #define KX132_I2C_ADDRESS_FLIPPED__ADDR_PIN_AT_IO_VDD (0x1D)
 
-//----------------------------------------------------------------------
-// Note:  Zephyr Project 2.6.0, and Zephyr 3.2.0 provide sensor.h header
-//   file.  An important enum given here is named sensor_channel.  Near
-//   it's end last two elements are:
-//
-//     189         SENSOR_CHAN_PRIV_START = SENSOR_CHAN_COMMON_COUNT,
-//
-//     194         SENSOR_CHAN_MAX = INT16_MAX,
-//
-//   Until we find better we're going to use "sensor channel private start"
-//   enum element to provide some custom channels to Kionix KX132-1211.
-//
-// 2023-01-12 addendum:
-//
-//   In more general sense Zephyr's sensor API establishes a notion
-//   of two interaction types between driver code and app code.  These
-//   interactions are in part referenced by the phrases "sensor channel
-//   fetch" and "sensor channel get".
-//
-//   To "fetch sensor data" causes given driver to communicate with a
-//   sensor and read back data.  The driver then stores latest readings
-//   or other status, config, or identifying data in memory allocated
-//   to the driver.
-//
-//   To "get sensor data" causes given driver to return the most
-//   recently fetched values to application code.
-//
-//   Zephyr also establishes a set of sensor "channels", in an attempt
-//   to make reading units and types uniformly known.  Sensor channels
-//   cover many commonly measured parameters from the outside world,
-//   parameters such as temperature, pressure, voltage, electrical
-//   current, acceleration, and similar.  This KX132 driver uses these
-//   channels where they apply.  There are also some configuration
-//   and identifying values application code may want to read from a
-//   KX132 sensor which do not appear in Zephyr's sensor API channels
-//   enumeration.  For this reason this driver implements a few
-//   additinal sensor channels in following enumeration, to support
-//   returning these data to app code from a KX132 accelerometer:
-//----------------------------------------------------------------------
+// TODO [ ] Remove remaining Kionix "specific" channel enum members,
+//          They should not be needed.
 
-enum sensor_channels_kionix_specific {
-    SENSOR_CHAN_KIONIX_START = (SENSOR_CHAN_PRIV_START + 1),
-    // SENSOR_CHAN_KIONIX_MANUFACTURER_ID,
-    // SENSOR_CHAN_KIONIX_PART_ID,
-// KX132_INT_REL, something of a config and a status register:
-    // SENSOR_CHAN_KIONIX_INTERRUPT_LATCH_RELEASE,
-// sensor status register:
-    // SENSOR_CHAN_KIONIX_INS2,
-// programmatic:
-    SENSOR_CHAN_KIONIX_SOFTWARE_RESET_STATUS_VALUE,
+// enum sensor_channels_kionix_specific {
 // sensor readings FIFO:
-    SENSOR_CHAN_KIONIX_BUF_READ,
-// a general "read configuration value" custom sensor channel:
-    SENSOR_CHAN_KIONIX__KX132_CONFIG_REGISTER,
-
-//**********************************************************************
-// NOTE:  for safety there is no general "write register"
-// Zephyr sensor channel defined in this driver.  Certain register
-// bits of KX132 are reserved and technical manual instructs
-// sensor users to leave these bits unwritten and not changed.
-//**********************************************************************
-
-// a general "read status value" custom sensor channel:
-    SENSOR_CHAN_KIONIX__KX132_STATUS_REGISTER,
-
-    SENSOR_CHAN_KIONIX_END
-};
+//    SENSOR_CHAN_KIONIX_BUF_READ,
+// };
 
 // REF https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/drivers/sensor.h#L330
 

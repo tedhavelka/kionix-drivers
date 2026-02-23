@@ -2,7 +2,7 @@
  * @project Kionix Sensor Drivers
  * @file kx132-1211.c
  * @author Ted Havelka
- * @license Apache 2.0 licensed.
+ * @license Apache 2.0 or MIT license.
  */
 
 #define DT_DRV_COMPAT kionix_kx132
@@ -40,20 +40,11 @@ static int kx132_1211_attr_get(const struct device *dev,
     ARG_UNUSED(chan);
     int rstatus = 0;
 
-    // TODO [ ] There is a sensor attribute enum value `SENSOR_ATTR_CONFIGURATION`
-    //          defined at
-    //          https://github.com/zephyrproject-rtos/zephyr/blob/main/include/zephyr/drivers/sensor.h#L376
-    //          Test for this value and when found.
-    //
     // TODO [ ] amend the use of 'value' parameter to convey KX132-specific
     //          attribute to change in .val1 followed by flags or given value 
     //          to set passed in .val2.  This will overcome the 'not in enum'
     //          build time warnings from our non-Zephyr sensor attribute
     //          enum extending values.
-
-    // Note 2026-20-23 dom - out-of-tree-driver-demo does not call `sensor_attr_get`
-    //  thus changes here will not be visible until that supporting demo
-    //  app is updated.
 
     switch (attr)
     {
@@ -72,15 +63,15 @@ static int kx132_1211_attr_get(const struct device *dev,
 		rstatus = kx132_attr_reg_int_rel(dev, value);
 		break;
 
-            case SENSOR_ATTR_KIONIX__STATUS_REG_INS2: // TODO rename ==> KX132_ATTRIBUTE_REG_INS2
+            case SENSOR_ATTR_KIONIX__STATUS_REG_INS2: // TODO rename ==> KX132_ATTR_REG_INS2
                 rstatus = kx132_get_attr__return_interrupt_statae_2(dev, value);
                 break;
 
-            case SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL: // TODO rename ==> KX132_ATTRIBUTE_REG_ODCNTL
+            case SENSOR_ATTR_KIONIX__STATUS_REG_ODCNTL: // TODO rename ==> KX132_ATTR_REG_ODCNTL
                 rstatus = kx132_attr_reg_odcntl_get(dev, value);
                 break;
 
-            case SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1: // TODO rename ==> KX132_ATTRIBUTE_REG_CNTL1
+            case SENSOR_ATTR_KIONIX__CONFIG_REG_BUF_CNTL1: // TODO rename ==> KX132_ATTR_REG_CNTL1
                 rstatus = kx132_attr_sample_threshold_setting_get(dev, value);
                 break;
 
@@ -142,12 +133,8 @@ static int kx132_1211_attr_set(const struct device *dev,
 
     switch (attr)
     {
-
-// Note:  Zephyr standard sensor attribute enumeration values will be
-//  added here, at top of SWITCH construct.  None so far implemented as
-//  of 2022-11-28.  See `zephyr/include/zephyr/drivers/sensor.h` for
-//  full enumeration of Zephyr defined sensor attributes.  - TMH
-
+	// TODO [ ] Review the use of `SENSOR_ATTR_PRIV_START` over the Zephyr
+	//          specific named attributes before it in its enum:
         case SENSOR_ATTR_PRIV_START:
         {
             switch (chan)
@@ -220,20 +207,15 @@ static int kx132_1211_attr_set(const struct device *dev,
                     break;
 
                 default:
-                {
                     rstatus = -EINVAL;
                     break;
-                }
-
             }
         }
             break;
 
-        default: // ...default action to take with unrecognized sensor attribute
-        {
+        default:
             rstatus = -EINVAL;
             break;
-        }
     }
 
     return rstatus;
@@ -262,9 +244,9 @@ static int kx132_1211_sample_fetch(const struct device *dev, enum sensor_channel
             kx132_fetch_acceleration_xyz_axis(dev);
             break;
 
-        case SENSOR_CHAN_KIONIX_BUF_READ:
-            kx132_fetch_readings_from_buf_read(dev);
-            break;
+        // case SENSOR_CHAN_KIONIX_BUF_READ:
+        //     kx132_fetch_readings_from_buf_read(dev);
+        //     break;
 
         default:
             rstatus = -EINVAL;
@@ -285,16 +267,6 @@ static int kx132_1211_channel_get(const struct device *dev,
 
     switch (chan)
     {
-        // case SENSOR_CHAN_KIONIX_MANUFACTURER_ID:
-        //     val->val1 = data->manufacturer_id.as_32_bit_integer;
-        //     val->val2 = 0;
-        //     break;
-
-        // case SENSOR_CHAN_KIONIX_PART_ID:
-        //     val->val1 = data->part_id.as_16_bit_integer;
-        //     val->val2 = 0;
-        //     break;
-
         case SENSOR_CHAN_ACCEL_X:
             val->val1 = ( ( data->accel_axis_x[1] << 8 ) | ( data->accel_axis_x[0] ) );
             val->val2 = 0;
@@ -311,11 +283,6 @@ static int kx132_1211_channel_get(const struct device *dev,
             break;
 
         case SENSOR_CHAN_ACCEL_XYZ:
-// Here encode X, Y, Z two-byte accelerometer readings in struct sensor_value as follows:
-//
-//          sensor_value.val1 <-- [ Y_MSB ][ Y_LSB ][ X_MSB ][ X_LSB ]
-//          sensor_value.val2 <-- [   0   ][   0   ][ Z_MSB ][ Z_LSB ]
-
             val->val1 = ( ( data->accel_axis_x[1] <<  8 ) | ( data->accel_axis_x[0] <<  0 )
                         | ( data->accel_axis_y[1] << 24 ) | ( data->accel_axis_y[0] << 16 ) );
 
@@ -324,23 +291,12 @@ static int kx132_1211_channel_get(const struct device *dev,
 
 // NOTE, KX132 sample buffer readings not to be confused with values
 // read from XOUT_L, XOUT_H, YOUT_L, YOUT_H, etc:
-        case SENSOR_CHAN_KIONIX_BUF_READ:
-            val->val1 = ((data->shadow_reg_buf_read[0] <<  0) | (data->shadow_reg_buf_read[1] <<  8) | // x | xlsb, xmsb
-                         (data->shadow_reg_buf_read[2] << 16) | (data->shadow_reg_buf_read[3] << 24)   // y | ylsb, ymsb
-                        );
-            val->val2 = ((data->shadow_reg_buf_read[4] <<  0) | (data->shadow_reg_buf_read[5] <<  8)   // z | zlsb, zmsb
-                        );
-            break;
-
-        // case SENSOR_CHAN_KIONIX_INTERRUPT_LATCH_RELEASE:
-        //     val->val1 = data->shadow_reg_int_rel;
-        //     val->val2 = 0;
-        //     break;
-
-        // case SENSOR_CHAN_KIONIX_INS2:
-        //     val->val1 = data->shadow_reg_ins2;
-        //     val->val2 = 0;
-        //     break;
+        // case SENSOR_CHAN_KIONIX_BUF_READ:
+        //    val->val1 = ((data->shadow_reg_buf_read[0] <<  0) | (data->shadow_reg_buf_read[1] <<  8) | // x | xlsb, xmsb
+        //                  (data->shadow_reg_buf_read[2] << 16) | (data->shadow_reg_buf_read[3] << 24)   // y | ylsb, ymsb
+        //                );
+        //     val->val2 = ((data->shadow_reg_buf_read[4] <<  0) | (data->shadow_reg_buf_read[5] <<  8)   // z | zlsb, zmsb
+        //    break;
 
         default:
             routine_status = -EINVAL;
@@ -405,8 +361,6 @@ static int kx132_init_interface(const struct device *dev)
 
 static int kx132_init(const struct device *dev)
 {
-LOG_ERR("M1");
-
 #ifdef CONFIG_KX132_TRIGGER
     const struct kx132_device_config *cfg = dev->config;
 #endif
