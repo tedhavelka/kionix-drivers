@@ -268,7 +268,7 @@ enum sensor_channels_kionix_specific {
     SENSOR_CHAN_KIONIX_MANUFACTURER_ID,
     SENSOR_CHAN_KIONIX_PART_ID,
 // KX132_INT_REL, something of a config and a status register:
-    SENSOR_CHAN_KIONIX_INTERRUPT_LATCH_RELEASE,
+    // SENSOR_CHAN_KIONIX_INTERRUPT_LATCH_RELEASE,
 // sensor status register:
     SENSOR_CHAN_KIONIX_INS2,
 // programmatic:
