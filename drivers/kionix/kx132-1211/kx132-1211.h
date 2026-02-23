@@ -303,6 +303,7 @@ enum sensor_attributes_kionix_specific {
 
     KX132_ATTR_MANUFACTURER_ID_STRING,
     KX132_ATTR_PART_ID,
+    KX132_ATTR_REG_INT_REL,
 
     SENSOR_ATTR_KIONIX__END
 };

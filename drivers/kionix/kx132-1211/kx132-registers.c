@@ -2,27 +2,7 @@
  * Kionix KX132 Zephyr driver
  */
 
-//----------------------------------------------------------------------
-// - SECTION - notes
-//----------------------------------------------------------------------
-
-// 2022-11-21:  Encountered issue on 11-21, finding that with Kionix
-//  accelerometer I2C "burst" read API call returns mostly garbled
-//  data.  Tried i2c_write_read_dt() and this routine returns expected
-//  data, so switched to this one.  Contributor Ted suspect that I2C
-//  burst write API call in Zephyr 3.2.0 also fails with Kionix KX132
-//  sensor.  The alternative API calls, however, have a different
-//  enough implementation that calling them requires sending the sensor
-//  internal register address as part of the data buffer to write,
-//  in other words, all calls from this driver to the I2C write
-//  routine must be adapted to include sensor internal register address
-//  as first byte in the data buffer of data to write.
-//
-//  Contributor Ted working to find a Zephyr I2C API call which accepts
-//  parameters and data buffers in the same way I2C write burst API
-//  requires its parameters to be passed.
-//
-//  Note also per AN092-Getting_Started.pdf, page 3 of 27, KX132
+//  Note per AN092-Getting_Started.pdf, page 3 of 27, KX132
 //  "data ready" or drdy interrupt will be cleared automatically when
 //  x,y,z acceleration readings registers are read out via an I2C
 //  burst read operation.
@@ -38,38 +18,21 @@ LOG_MODULE_DECLARE(KX132, CONFIG_SENSOR_LOG_LEVEL);
 //----------------------------------------------------------------------
 
 /**
-  * @defgroup  KX132_Interfaces_Functions
-  * @brief This section provide a set of functions used to read and write
-  *   a generic register of the device.
-  */
-
-//**********************************************************************
-//
-// Notes on register read, write wrappers . . .
-//
-//                                      I2C ctrlr, regaddr, data buffer, length data to write
-//                                           |       |          |                |
-// 112 typedef int32_t (*stmdev_write_ptr)(void *, uint8_t, const uint8_t *, uint16_t);
-// 113 typedef int32_t (*stmdev_read_ptr)(void *, uint8_t, uint8_t *, uint16_t);
-//                                           |       |          |                |
-//                                      I2C ctrlr, regaddr, data buffer, length data to read
-//
-// IIS2dh example call
-//
-//    ret = iis2dh_read_reg(ctx, IIS2DH_WHO_AM_I, buff, 1);
-//
-//**********************************************************************
+ * @defgroup  KX132_Interfaces_Functions
+ * @brief This section provide a set of functions used to read and write
+ *   a generic register of the device.
+ */
 
 /**
-  * @brief  Read generic device register
-  *
-  * @param  ctx   read / write interface definitions(ptr)
-  * @param  reg   register to read
-  * @param  data  pointer to buffer that store the data read(ptr)
-  * @param  len   number of consecutive register to read
-  * @retval          interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+ * @brief  Read generic device register
+ *
+ * @param  ctx   read / write interface definitions(ptr)
+ * @param  reg   register to read
+ * @param  data  pointer to buffer that store the data read(ptr)
+ * @param  len   number of consecutive register to read
+ * @retval          interface status (MANDATORY: return 0 -> no Error)
+ *
+ */
 
 int32_t kx132_read_reg(kionix_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len)
 {
@@ -81,15 +44,15 @@ int32_t kx132_read_reg(kionix_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t l
 }
 
 /**
-  * @brief  Write generic device register
-  *
-  * @param  ctx   read / write interface definitions(ptr)
-  * @param  reg   register to write
-  * @param  data  pointer to data to write in register reg(ptr)
-  * @param  len   number of consecutive register to write
-  * @retval          interface status (MANDATORY: return 0 -> no Error)
-  *
-  */
+ * @brief  Write generic device register
+ *
+ * @param  ctx   read / write interface definitions(ptr)
+ * @param  reg   register to write
+ * @param  data  pointer to data to write in register reg(ptr)
+ * @param  len   number of consecutive register to write
+ * @retval          interface status (MANDATORY: return 0 -> no Error)
+ *
+ */
 
 int32_t kx132_write_reg(kionix_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len)
 {
@@ -427,62 +390,41 @@ int kx132_update_shadow_reg__sample_threshold(const struct device *dev, const ui
 }
 
 //----------------------------------------------------------------------
-// - SECTION - fetch and get register value routines
+// - SECTION - sensor_attr_get() specific routines
 //----------------------------------------------------------------------
 
-/**
- * @ note Zephyr RTOS sensor API presents notions of fetching, and
- *   getting sensor readings and register values.  In Zephyr context
- *   to fetch a value means a driver reads a value from a sensor and
- *   stores this value in some variable, such as a "shadow" or copy
- *   register variable, which is itself part of the driver.
- *
- *   In Zephyr context to get a sensor reading or register value means
- *   that the driver returns that value to application code, whether
- *   reading directly from a sensor register or returning the
- *   shadowed copy of the most recent reading.
- *
- *   KX132 driver routines in this section either fetch register
- *   values, or they fetch and return values to application code.
- */
+// TODO [ ] Rename `reg_val_to_read` to `reg_value`.
 
-/** 
- * @brief This routine fetches Kionix KX132-1211 Manufacturer ID string.
- */
-
-#if 0
-int kx132_fetch_device_id(const struct device *dev)
+int kx132_attr_man_id_string_get(const struct device *dev, struct sensor_value *value)
 {
     struct kx132_device_data *data = dev->data;
-    uint8_t reg_val_to_read[] = {0, 0, 0, 0};
+    uint8_t reg_val_to_read[KX132_MAN_ID_SIZE] = {0};
     uint8_t *read_buffer = reg_val_to_read;
-    int i = 0;
-    int rc = 0;
+    uint32_t rc = 0;
+
+    if (value->val1 != KX132_ATTR_MANUFACTURER_ID_STRING)
+    {
+        LOG_ERR("Called to return manufacturer id string but wrong attribute "
+                "requested, attr %d", value->val1);
+        return -EINVAL;
+    }
 
     rc = kx132_read_reg(data->ctx, KX132_MAN_ID, read_buffer, KX132_MAN_ID_SIZE);
-
-    if ( rc != 0 )
+    if (rc != 0)
     {
-        LOG_WRN("Unable to read manufacturer ID string. Err: %i", rc);
+        LOG_ERR("Failed to read manufacturer ID string, err %d", rc);
         return rc;
     }
 
-    for ( i = 0; i < SIZE_MANUFACT_ID_STRING; i++ )
-    {
-        // TODO [ ] Review KX132 data struct for member `union manufacturer_id`.
-	//          This should be removed in favor of returning this value
-	//          using `sensor_attr_get()` function plus specific helper
-	//          function.
-        data->manufacturer_id.as_bytes[i] = read_buffer[i];
-    }
+    int32_t man_id_as_int =
+	    read_buffer[0] |
+	    read_buffer[1] << 8 |
+	    read_buffer[2] << 16 |
+	    read_buffer[3] << 24;
+    value->val2 = man_id_as_int;
 
     return rc;
 }
-#endif // 0
-
-// TODO [ ] Refactor part id getter function to be one of sensor_attr_get()
-//          specific functions:
-// TODO [ ] Rename `reg_val_to_read` to `reg_value`.
 
 int kx132_attr_part_id_get(const struct device *dev, struct sensor_value *value)
 {
@@ -515,37 +457,6 @@ int kx132_attr_part_id_get(const struct device *dev, struct sensor_value *value)
     return rc;
 }
  
-int kx132_attr_man_id_string_get(const struct device *dev, struct sensor_value *value)
-{
-    struct kx132_device_data *data = dev->data;
-    uint8_t reg_val_to_read[KX132_MAN_ID_SIZE] = {0};
-    uint8_t *read_buffer = reg_val_to_read;
-    uint32_t rc = 0;
-
-    if (value->val1 != KX132_ATTR_MANUFACTURER_ID_STRING)
-    {
-        LOG_ERR("Called to return manufacturer id string but wrong attribute "
-                "requested, attr %d", value->val1);
-        return -EINVAL;
-    }
-
-    rc = kx132_read_reg(data->ctx, KX132_MAN_ID, read_buffer, KX132_MAN_ID_SIZE);
-    if (rc != 0)
-    {
-        LOG_ERR("Failed to read manufacturer ID string, err %d", rc);
-        return rc;
-    }
-
-    int32_t man_id_as_int =
-	    read_buffer[0] |
-	    read_buffer[1] << 8 |
-	    read_buffer[2] << 16 |
-	    read_buffer[3] << 24;
-    value->val2 = man_id_as_int;
-
-    return rc;
-}
-
 int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *val)
 {
     struct kx132_device_data *data = dev->data;
@@ -602,6 +513,29 @@ int kx132_attr_sample_threshold_setting_get(const struct device *dev, struct sen
     rc = kx132_read_reg(data->ctx, KX132_BUF_CNTL1, read_buffer, SIZE_KX132_REGISTER_VALUE);
     data->shadow_reg_buf_cntl1 = read_buffer[0];
     value->val2 = data->shadow_reg_buf_cntl1;
+
+    return rc;
+}
+
+// Note this is an important register to read in certain situations, so
+// TODO [ ] Refactor this routine to a `sensor_attr_get()` specific function:
+
+// int kx132_fetch_interrupt_latch_release(const struct device *dev)
+int kx132_attr_reg_int_rel(const struct device *dev,  struct sensor_value *value)
+{
+    struct kx132_device_data *data = dev->data;
+    uint8_t reg_val_to_read[] = {0};
+    uint8_t *read_buffer = reg_val_to_read;
+    int rc = 0;
+
+    rc = kx132_read_reg(data->ctx, KX132_INT_REL, read_buffer, SIZE_KX132_REGISTER_VALUE);
+
+    if (rc != 0) {
+        LOG_ERR("Failed to read INT_REL register, err %d", rc);
+    } else {
+        // data->shadow_reg_int_rel = read_buffer[0];
+        value->val2 = read_buffer[0];
+    }
 
     return rc;
 }
@@ -719,23 +653,6 @@ int kx132_fetch_acceleration_xyz_axis(const struct device *dev)
     );
     LOG_INF("- DEV - (requested %d bytes of data from sensor reg addr %d) - DEV -\n",
       sizeof(reg_val_to_read), KX132_XOUT_L);
-
-    return rc;
-}
-
-int kx132_fetch_interrupt_latch_release(const struct device *dev)
-{
-    struct kx132_device_data *data = dev->data;
-    uint8_t reg_val_to_read[] = {0};
-    uint8_t *read_buffer = reg_val_to_read;
-    int rc = 0;
-
-    rc = kx132_read_reg(data->ctx, KX132_INT_REL, read_buffer, SIZE_KX132_REGISTER_VALUE);
-
-    if ( rc != 0 )
-        { LOG_WRN("Unable to read interrupt latch release register.  Err: %i", rc); }
-    else
-        { data->shadow_reg_int_rel = read_buffer[0]; }
 
     return rc;
 }

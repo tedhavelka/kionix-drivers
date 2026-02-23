@@ -255,9 +255,9 @@ int kx132_fetch_readings_from_buf_read(const struct device *dev);
 
 // int kx132_fetch_device_id(const struct device *dev);
 
-int kx132_fetch_part_id(const struct device *dev);
+// int kx132_fetch_part_id(const struct device *dev);
 
-int kx132_fetch_interrupt_latch_release(const struct device *dev);
+// int kx132_fetch_interrupt_latch_release(const struct device *dev);
 
 int kx132_fetch_interrupt_source_2(const struct device *dev);
 
@@ -277,11 +277,13 @@ int kx132_attr_man_id_string_get(const struct device *dev, struct sensor_value *
 
 int kx132_attr_part_id_get(const struct device *dev, struct sensor_value *value);
 
-int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *val);
+int kx132_get_attr__return_interrupt_statae_2(const struct device *dev, struct sensor_value *value);
 
-int kx132_attr_reg_odcntl_get(const struct device *dev, struct sensor_value *val);
+int kx132_attr_reg_odcntl_get(const struct device *dev, struct sensor_value *value);
 
-int kx132_attr_sample_threshold_setting_get(const struct device *dev, struct sensor_value *val);
+int kx132_attr_sample_threshold_setting_get(const struct device *dev, struct sensor_value *value);
+
+int kx132_attr_reg_int_rel(const struct device *dev,  struct sensor_value *value);
 
 // - GROUP - routines which write values to sensor registers:
 

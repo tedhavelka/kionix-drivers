@@ -68,6 +68,10 @@ static int kx132_1211_attr_get(const struct device *dev,
 		rstatus = kx132_attr_part_id_get(dev, value);
 		break;
 
+            case KX132_ATTR_REG_INT_REL: 
+		rstatus = kx132_attr_reg_int_rel(dev, value);
+		break;
+
             case SENSOR_ATTR_KIONIX__STATUS_REG_INS2: // TODO rename ==> KX132_ATTRIBUTE_REG_INS2
                 rstatus = kx132_get_attr__return_interrupt_statae_2(dev, value);
                 break;
