@@ -265,12 +265,12 @@ int kx132_trigger_set(const struct device *dev,
 
 enum sensor_channels_kionix_specific {
     SENSOR_CHAN_KIONIX_START = (SENSOR_CHAN_PRIV_START + 1),
-    SENSOR_CHAN_KIONIX_MANUFACTURER_ID,
-    SENSOR_CHAN_KIONIX_PART_ID,
+    // SENSOR_CHAN_KIONIX_MANUFACTURER_ID,
+    // SENSOR_CHAN_KIONIX_PART_ID,
 // KX132_INT_REL, something of a config and a status register:
     // SENSOR_CHAN_KIONIX_INTERRUPT_LATCH_RELEASE,
 // sensor status register:
-    SENSOR_CHAN_KIONIX_INS2,
+    // SENSOR_CHAN_KIONIX_INS2,
 // programmatic:
     SENSOR_CHAN_KIONIX_SOFTWARE_RESET_STATUS_VALUE,
 // sensor readings FIFO:

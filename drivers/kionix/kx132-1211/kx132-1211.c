@@ -262,10 +262,6 @@ static int kx132_1211_sample_fetch(const struct device *dev, enum sensor_channel
             kx132_fetch_acceleration_xyz_axis(dev);
             break;
 
-        // case SENSOR_CHAN_KIONIX_INTERRUPT_LATCH_RELEASE:
-        //     kx132_fetch_interrupt_latch_release(dev);
-        //     break;
-
         case SENSOR_CHAN_KIONIX_BUF_READ:
             kx132_fetch_readings_from_buf_read(dev);
             break;
@@ -289,15 +285,15 @@ static int kx132_1211_channel_get(const struct device *dev,
 
     switch (chan)
     {
-        case SENSOR_CHAN_KIONIX_MANUFACTURER_ID:
-            val->val1 = data->manufacturer_id.as_32_bit_integer;
-            val->val2 = 0;
-            break;
+        // case SENSOR_CHAN_KIONIX_MANUFACTURER_ID:
+        //     val->val1 = data->manufacturer_id.as_32_bit_integer;
+        //     val->val2 = 0;
+        //     break;
 
-        case SENSOR_CHAN_KIONIX_PART_ID:
-            val->val1 = data->part_id.as_16_bit_integer;
-            val->val2 = 0;
-            break;
+        // case SENSOR_CHAN_KIONIX_PART_ID:
+        //     val->val1 = data->part_id.as_16_bit_integer;
+        //     val->val2 = 0;
+        //     break;
 
         case SENSOR_CHAN_ACCEL_X:
             val->val1 = ( ( data->accel_axis_x[1] << 8 ) | ( data->accel_axis_x[0] ) );
@@ -341,10 +337,10 @@ static int kx132_1211_channel_get(const struct device *dev,
         //     val->val2 = 0;
         //     break;
 
-        case SENSOR_CHAN_KIONIX_INS2:
-            val->val1 = data->shadow_reg_ins2;
-            val->val2 = 0;
-            break;
+        // case SENSOR_CHAN_KIONIX_INS2:
+        //     val->val1 = data->shadow_reg_ins2;
+        //     val->val2 = 0;
+        //     break;
 
         default:
             routine_status = -EINVAL;

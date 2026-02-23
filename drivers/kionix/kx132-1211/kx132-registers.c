@@ -2,16 +2,14 @@
  * Kionix KX132 Zephyr driver
  */
 
-//  Note per AN092-Getting_Started.pdf, page 3 of 27, KX132
-//  "data ready" or drdy interrupt will be cleared automatically when
-//  x,y,z acceleration readings registers are read out via an I2C
-//  burst read operation.
-
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(KX132, CONFIG_SENSOR_LOG_LEVEL);
 
 #include "kx132-1211.h"
 #include "kx132-registers.h"
+
+// TODO [ ] Review the use of shadow registers to hold copies of latest
+//          queried values from the sensor.
 
 //----------------------------------------------------------------------
 // - SECTION - register read and write wrapper functions
@@ -36,10 +34,7 @@ LOG_MODULE_DECLARE(KX132, CONFIG_SENSOR_LOG_LEVEL);
 
 int32_t kx132_read_reg(kionix_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len)
 {
-  int32_t rc;
-
-  rc = ctx->read_reg(ctx->handle, reg, data, len);
-
+  int32_t rc = ctx->read_reg(ctx->handle, reg, data, len);
   return rc;
 }
 
@@ -56,10 +51,7 @@ int32_t kx132_read_reg(kionix_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t l
 
 int32_t kx132_write_reg(kionix_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len)
 {
-  int32_t rc;
-
-  rc = ctx->write_reg(ctx->handle, reg, data, len);
-
+  int32_t rc = ctx->write_reg(ctx->handle, reg, data, len);
   return rc;
 }
 
