@@ -469,10 +469,10 @@ int kx132_fetch_device_id(const struct device *dev)
 
     for ( i = 0; i < SIZE_MANUFACT_ID_STRING; i++ )
     {
-        // TODO [ ] Review KX132 struct for sensor data, and its apparent member
-	//          `manufacturer_id`.  We should remove this in favor of returning
-	//          this value using `sensor_attr_get()` function plus specific
-	//          helper function to it.
+        // TODO [ ] Review KX132 data struct for member `union manufacturer_id`.
+	//          This should be removed in favor of returning this value
+	//          using `sensor_attr_get()` function plus specific helper
+	//          function.
         data->manufacturer_id.as_bytes[i] = read_buffer[i];
     }
 
@@ -482,27 +482,35 @@ int kx132_fetch_device_id(const struct device *dev)
 
 // TODO [ ] Refactor part id getter function to be one of sensor_attr_get()
 //          specific functions:
+// TODO [ ] Rename `reg_val_to_read` to `reg_value`.
 
-int kx132_fetch_part_id(const struct device *dev)
+int kx132_attr_part_id_get(const struct device *dev, struct sensor_value *value)
 {
     struct kx132_device_data *data = dev->data;
-    uint8_t reg_val_to_read[] = {0, 0};
+    uint8_t reg_val_to_read[KX132_PART_ID_SIZE] = {0};
     uint8_t *read_buffer = reg_val_to_read;
-    int i = 0;
     int rc = 0;
 
-    rc = kx132_read_reg(data->ctx, KX132_PART_ID, read_buffer, KX132_PART_ID_SIZE);
-
-    if ( rc != 0 )
+    if (value->val1 != KX132_ATTR_PART_ID)
     {
-        LOG_WRN("Unable to read numeric part ID . Err: %i", rc);
+        LOG_ERR("Called to return part id but wrong attribute requested, attr "
+		"%d", value->val1);
+        return -EINVAL;
+    }
+
+    rc = kx132_read_reg(data->ctx, KX132_PART_ID, read_buffer, KX132_PART_ID_SIZE);
+    if (rc != 0)
+    {
+        LOG_ERR("Failed to read numeric part ID, err %d", rc);
         return rc;
     }
-
-    for ( i = 0; i < SIZE_PART_ID_STRING; i++ )
-    {
-        data->part_id.as_bytes[i] = read_buffer[i];
-    }
+    
+        // TODO [ ] Review KX132 data struct for member `union part_id`.
+        // data->part_id.as_bytes[i] = read_buffer[i];
+    int32_t part_id_as_int =
+	    read_buffer[0] |
+	    read_buffer[1] << 8;
+    value->val2 = part_id_as_int;
 
     return rc;
 }
@@ -516,12 +524,18 @@ int kx132_attr_man_id_string_get(const struct device *dev, struct sensor_value *
 
     if (value->val1 != KX132_ATTR_MANUFACTURER_ID_STRING)
     {
-        LOG_ERR("Called to return manufacturer id string but got wrong register id %d",
-                value->val1);
+        LOG_ERR("Called to return manufacturer id string but wrong attribute "
+                "requested, attr %d", value->val1);
         return -EINVAL;
     }
 
     rc = kx132_read_reg(data->ctx, KX132_MAN_ID, read_buffer, KX132_MAN_ID_SIZE);
+    if (rc != 0)
+    {
+        LOG_ERR("Failed to read manufacturer ID string, err %d", rc);
+        return rc;
+    }
+
     int32_t man_id_as_int =
 	    read_buffer[0] |
 	    read_buffer[1] << 8 |
